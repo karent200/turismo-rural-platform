@@ -1,0 +1,61 @@
+﻿<div class="prestador-wrap">
+  <header class="hub-header">
+    <h1>Panel administrador</h1>
+    <p>{{ auth.user()?.username }}</p>
+    <button type="button" class="btn-logout" (click)="logout()">Cerrar sesión</button>
+  </header>
+  <nav class="hub-grid">
+    <button type="button" class="hub-card" (click)="setTab('stats')">Estadísticas</button>
+    <button type="button" class="hub-card" (click)="setTab('users')">Usuarios</button>
+    <button type="button" class="hub-card" (click)="setTab('reservations')">Reservas</button>
+    <button type="button" class="hub-card" (click)="setTab('reviews')">Reseñas</button>
+  </nav>
+  @if (tab() === 'stats' && stats()) {
+    <section class="glass-panel" style="margin:1rem;display:grid;grid-template-columns:repeat(2,1fr);gap:1rem">
+      <p>Usuarios: {{ stats()!.users }}</p>
+      <p>Servicios: {{ stats()!.services }}</p>
+      <p>Reservas: {{ stats()!.reservations }}</p>
+      <p>Pendientes: {{ stats()!.pending }}</p>
+    </section>
+  }
+  @if (tab() === 'users') {
+    <section class="glass-panel" style="margin:1rem">
+      @for (u of users(); track u.id) {
+        <p>{{ u.username }} — {{ u.email }} — <strong>{{ u.role }}</strong></p>
+      }
+    </section>
+  }
+  @if (tab() === 'reservations') {
+    <section class="glass-panel" style="margin:1rem">
+      @for (r of reservations(); track r.id) {
+        <p>{{ r.service_name }} — {{ r.tourist_name }} — {{ r.status }} — {{ r.reservation_date }}</p>
+      }
+    </section>
+  }
+  @if (tab() === 'reviews') {
+    <section class="glass-panel" style="margin:1rem">
+      <h3><i class="fa-solid fa-star" style="color:#FBC02D;"></i> Todas las reseñas</h3>
+      @if (!reviews().length) {
+        <p class="loading-text">No hay reseñas registradas.</p>
+      }
+      @for (r of reviews(); track r.id) {
+      <div class="reserva-card" style="align-items:flex-start;">
+        <div class="reserva-info">
+          <strong>{{ r.service_name }}</strong>
+          <span>{{ r.tourist_name }}</span>
+          <div class="stars-row">
+            @for (star of starsArray(r.rating); track $index) {
+            <i class="fa-solid fa-star" [style.color]="star === 1 ? '#FBC02D' : '#555'" style="font-size:0.85rem;"></i>
+            }
+          </div>
+          @if (r.comment) {
+          <p style="color:#ccc;font-style:italic;font-size:0.85rem;">"{{ r.comment }}"</p>
+          }
+          <span style="font-size:0.75rem;color:#888;">{{ r.created_at | slice:0:10 }}</span>
+        </div>
+        <button type="button" class="btn-cancel-modal" (click)="deleteReview(r.id)">Eliminar</button>
+      </div>
+      }
+    </section>
+  }
+</div>

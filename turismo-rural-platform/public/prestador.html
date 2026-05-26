@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Prestador - Turismo Rural Nariño</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏔️</text></svg>">
+    <link href="vendor/fontawesome/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: #0f2027; background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364); min-height: 100vh; }
+        
+        .prestador-header {
+            background: rgba(0,0,0,0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        .prestador-header h1 { color: white; font-family: 'Playfair Display', serif; font-size: 1.8rem; }
+        .prestador-header h1 i { color: #FBC02D; margin-right: 0.5rem; }
+        .btn-cerrar {
+            background: linear-gradient(135deg, #E53935, #C62828);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .prestador-container { 
+            padding: 2rem; 
+            max-width: 1100px; 
+            margin: 0 auto;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .prestador-container::-webkit-scrollbar { width: 10px; }
+        .prestador-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); }
+        .prestador-container::-webkit-scrollbar-thumb { background: #2E7D32; border-radius: 5px; }
+        
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+        }
+        .stat-card i { font-size: 2.5rem; color: #FBC02D; margin-bottom: 0.5rem; }
+        .stat-card .number { font-size: 2.5rem; font-weight: 700; color: white; }
+        .stat-card .label { color: rgba(255,255,255,0.7); font-size: 1rem; }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .tab {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        .tab i { margin-right: 0.4rem; }
+        .tab.active { background: #2E7D32; }
+        
+        /* Content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Services */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        .service-card-prestador {
+            background: white;
+            border-radius: 25px;
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            border-left: 6px solid #2E7D32;
+        }
+        .service-card-prestador h3 { color: #1B5E20; margin-bottom: 0.8rem; font-size: 1.3rem; }
+        .service-card-prestador .type { 
+            display: inline-block; background: #2E7D32; color: white; 
+            padding: 0.5rem 1.2rem; border-radius: 25px; font-size: 1rem; margin-bottom: 1rem;
+        }
+        .service-card-prestador .price { font-size: 2rem; font-weight: 700; color: #2E7D32; margin: 1rem 0; }
+        .service-card-prestador .location { color: #666; font-size: 1.1rem; margin-bottom: 1rem; }
+        .service-card-prestador .description { color: #888; font-size: 1rem; margin-bottom: 1.2rem; }
+        .service-card-prestador .actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .btn-edit, .btn-delete {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .btn-edit { background: #FFC107; color: #000; }
+        .btn-delete { background: #E53935; color: white; }
+        
+        /* Reservations */
+        .reservation-card-prestador {
+            background: white;
+            border-radius: 25px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .reservation-card-prestador .info h4 { color: #1B5E20; margin-bottom: 0.8rem; font-size: 1.2rem; }
+        .reservation-card-prestador .info p { color: #666; font-size: 1rem; margin-bottom: 0.5rem; }
+        .reservation-card-prestador .status {
+            padding: 0.6rem 1.5rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .status.pendiente { background: #FFF3E0; color: #E65100; }
+        .status.confirmada { background: #E8F5E9; color: #2E7D32; }
+        .status.cancelada { background: #FFEBEE; color: #C62828; }
+        .status.completada { background: #E3F2FD; color: #1565C0; }
+        .badge-upcoming { display:inline-block; padding:0.5rem 1.2rem; border-radius:20px; background:#F3E5F5; color:#7B1FA2; font-weight:600; font-size:0.9rem; }
+        .reservation-actions { display: flex; gap: 1rem; }
+        .btn-confirm, .btn-cancel, .btn-complete {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .btn-confirm { background: #2E7D32; color: white; }
+        .btn-cancel { background: #E53935; color: white; }
+        .btn-complete { background: #1565C0; color: white; }
+        
+        /* Add Button */
+        .add-service-btn {
+            background: linear-gradient(135deg, #2E7D32, #1B5E20);
+            border: none;
+            padding: 1.2rem 2.5rem;
+            border-radius: 35px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(46,125,50,0.3);
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal::-webkit-scrollbar { width: 8px; }
+        .modal::-webkit-scrollbar-track { background: #f1f1f1; }
+        .modal::-webkit-scrollbar-thumb { background: #2E7D32; border-radius: 4px; }
+        .modal h2 { color: #1B5E20; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: #333; font-weight: 600; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        .modal-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .btn-save { background: #2E7D32; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 10px; cursor: pointer; }
+        .btn-cancel-modal { background: #E53935; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 10px; cursor: pointer; }
+        
+        .empty-state { text-align: center; color: white; padding: 3rem; }
+        .login-gate {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .login-gate-box {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+        .login-gate-box h2 { color: #1B5E20; margin-bottom: 0.5rem; text-align: center; }
+        .login-gate-box p { color: #666; text-align: center; margin-bottom: 1rem; }
+        .login-gate-box input {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        .login-gate-box button[type=submit] {
+            width: 100%;
+            padding: 0.85rem;
+            background: #2E7D32;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .login-gate-error { color: #c62828; font-size: 0.9rem; min-height: 1.2rem; }
+        .login-gate-link { display: block; text-align: center; margin-top: 1rem; color: #2E7D32; }
+        #header-user { font-size: 0.9rem; opacity: 0.85; font-weight: 400; }
+
+
+        .profile-card {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+        .profile-card h2 { font-size: 1.2rem; margin-bottom: 1rem; color: #FBC02D; }
+        .profile-card h2 i { margin-right: 0.4rem; }
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+        .profile-grid label { display: block; font-size: 0.85rem; margin-bottom: 0.35rem; opacity: 0.9; }
+        .profile-grid input, .profile-grid textarea {
+            width: 100%;
+            padding: 0.65rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(0,0,0,0.2);
+            color: white;
+        }
+        .profile-grid textarea { min-height: 70px; resize: vertical; }
+        .btn-save-profile {
+            margin-top: 1rem;
+            background: #FBC02D;
+            color: #1B5E20;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .availability-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            align-items: flex-end;
+        }
+        .availability-form select, .availability-form input {
+            padding: 0.65rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(0,0,0,0.25);
+            color: white;
+            min-width: 140px;
+        }
+        .availability-row {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            color: white;
+        }
+        .btn-del-slot {
+            background: #E53935;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .review-card {
+            background: white; border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+        .review-card .review-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+        .review-card .review-avatar {
+            width: 40px; height: 40px; border-radius: 50%; background: #2E7D32;
+            color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;
+        }
+        .review-card .review-service { font-size: 0.85rem; color: #2E7D32; font-weight: 600; }
+        .review-card .review-comment { color: #555; margin: 0.5rem 0 0 0; font-size: 0.95rem; }
+        .review-card .review-date { color: #999; font-size: 0.8rem; }
+        .reviews-stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .reviews-stat-card {
+            background: rgba(255,255,255,0.15); border-radius: 16px; padding: 1.25rem; text-align: center; color: white; backdrop-filter: blur(10px);
+        }
+        .reviews-stat-card .stat-number { font-size: 2rem; font-weight: 700; }
+        .reviews-stat-card .stat-label { font-size: 0.85rem; opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div id="login-gate" class="login-gate">
+        <div class="login-gate-box">
+            <h2><i class="fa-solid fa-house-chimney"></i> Panel Prestador</h2>
+            <p>Inicia sesión para ver tus servicios y reservas</p>
+            <p id="login-gate-error" class="login-gate-error"></p>
+            <form onsubmit="loginPrestador(event)">
+                <input type="email" id="gate-email" placeholder="Correo" required value="prestador@test.com">
+                <div style="position:relative;">
+                    <input type="password" id="gate-password" placeholder="Contraseña" required style="width:100%;padding-right:2.5rem;">
+                    <i class="fa-regular fa-eye pw-toggle" onclick="togglePass('gate-password',this)"></i>
+                </div>
+                <input type="hidden" id="gate-remember-pass" value="">
+                <button type="submit"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+            </form>
+            <a href="index.html" class="login-gate-link">← Volver al inicio</a>
+        </div>
+    </div>
+
+    <div id="panel-main" style="display:none;">
+    <header class="prestador-header">
+        <h1><i class="fa-solid fa-house-chimney"></i> Panel de Prestador <span id="header-user"></span></h1>
+        <button class="btn-cerrar" onclick="logout()"><i class="fa-solid fa-door-open"></i> Cerrar Sesión</button>
+    </header>
+    
+    <div class="prestador-container">
+
+        <div class="profile-card" id="profileSection">
+            <div onclick="toggleProfile()" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+                <h2><i class="fa-solid fa-store"></i> Mi negocio <span style="font-size:0.8rem;opacity:0.7;font-weight:400;">— datos que ven los turistas</span></h2>
+                <span id="profile-toggle-icon"><i class="fa-solid fa-chevron-down"></i></span>
+            </div>
+            <form id="profileForm" onsubmit="saveProfile(event)" style="display:none;">
+                <div class="profile-grid">
+                    <div><label>Nombre del negocio</label>
+                        <input type="text" id="businessName" required placeholder="Ej. Finca Vista Andina"></div>
+                    <div><label>Municipio</label>
+                        <input type="text" id="municipio" placeholder="Ej. La Unión"></div>
+                    <div><label>Teléfono de contacto</label>
+                        <input type="tel" id="telefonoContacto" placeholder="300 123 4567"></div>
+                    <div style="grid-column: 1 / -1;"><label>Descripción</label>
+                        <textarea id="descripcionNegocio" placeholder="Cuéntanos qué ofreces..."></textarea></div>
+                </div>
+                <button type="submit" class="btn-save-profile"><i class="fa-solid fa-floppy-disk"></i> Guardar perfil</button>
+            </form>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fa-solid fa-calendar-check"></i>
+                <div class="number" id="stat-reservas">0</div>
+                <div class="label">Reservas</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-dollar-sign"></i>
+                <div class="number" id="stat-ingresos">$0</div>
+                <div class="label">Ingresos Est.</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-concierge-bell"></i>
+                <div class="number" id="stat-servicios">0</div>
+                <div class="label">Servicios</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-check-circle"></i>
+                <div class="number" id="stat-confirmadas">0</div>
+                <div class="label">Confirmadas</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-check-double"></i>
+                <div class="number" id="stat-completadas">0</div>
+                <div class="label">Completadas</div>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('servicios', this)"><i class="fa-solid fa-concierge-bell"></i> Mis Servicios</button>
+            <button class="tab" onclick="showTab('reservas', this)"><i class="fa-solid fa-bell"></i> Reservas</button>
+            <button class="tab" onclick="showTab('historial', this)"><i class="fa-solid fa-clock-rotate-left"></i> Historial</button>
+            <button class="tab" onclick="showTab('disponibilidad', this)"><i class="fa-solid fa-calendar-days"></i> Disponibilidad</button>
+            <button class="tab" onclick="showTab('resenas', this)"><i class="fa-solid fa-star"></i> Reseñas</button>
+        </div>
+        
+        <!-- Servicios Tab -->
+        <div class="tab-content active" id="tab-servicios">
+            <button class="add-service-btn" onclick="openModal()">
+                <i class="fa-solid fa-plus"></i> Nuevo Servicio
+            </button>
+            <input type="text" id="serviceSearch" placeholder="Buscar servicio..." oninput="prestadorCurrentPage=1;renderServices()" style="width:100%;max-width:350px;padding:0.75rem 1rem;border-radius:12px;border:none;margin-bottom:1rem;font-size:0.95rem;">
+            <div class="services-grid" id="servicesList"></div>
+            <div id="prestador-pagination" style="display:flex;justify-content:center;gap:0.5rem;margin:1.5rem 0;flex-wrap:wrap;"></div>
+        </div>
+        
+        <!-- Reservas Tab -->
+        <div class="tab-content" id="tab-reservas">
+            <div id="reservasPendientes"></div>
+        </div>
+        
+        <!-- Historial Tab -->
+        <div class="tab-content" id="tab-historial">
+            <div id="historialReservas"></div>
+        </div>
+        <div class="tab-content" id="tab-disponibilidad">
+            <form class="availability-form" onsubmit="saveAvailability(event)">
+                <div><label style="color:white;display:block;margin-bottom:0.3rem;">Servicio</label>
+                    <select id="availServiceId" required></select></div>
+                <div><label style="color:white;display:block;margin-bottom:0.3rem;">Fecha</label>
+                    <input type="date" id="availDate" required></div>
+                <div><label style="color:white;display:block;margin-bottom:0.3rem;">Cupos</label>
+                    <input type="number" id="availSlots" min="1" value="5" required></div>
+                <button type="submit" class="btn-save-profile"><i class="fa-solid fa-plus"></i> Agregar cupo</button>
+            </form>
+            <div id="availabilityList"></div>
+        </div>
+
+        <!-- Reseñas Tab -->
+        <div class="tab-content" id="tab-resenas">
+            <div id="reviewsStats"></div>
+            <div id="reviewsListPrestador"></div>
+        </div>
+
+    </div>
+    
+    <!-- Modal Servicio -->
+    <div class="modal-overlay" id="serviceModal">
+        <div class="modal">
+            <h2 id="modalTitle">Nuevo Servicio</h2>
+            <form id="serviceForm" onsubmit="saveService(event)">
+                <input type="hidden" id="serviceId">
+                <div class="form-group">
+                    <label>Nombre del servicio:</label>
+                    <input type="text" id="serviceName" required>
+                </div>
+                <div class="form-group">
+                    <label>Tipo:</label>
+                    <select id="serviceType" required>
+                        <option value="alojamiento">Alojamiento</option>
+                        <option value="recreacion">Recreación</option>
+                        <option value="gastronomia">Gastronomía</option>
+                        <option value="actividades">Actividades</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Descripción:</label>
+                    <textarea id="serviceDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Capacidad (personas):</label>
+                    <input type="number" id="serviceCapacity" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Precio (COP):</label>
+                    <input type="number" id="servicePrice" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Ubicación:</label>
+                    <input type="text" id="serviceLocation" list="locationSuggestions" required>
+                    <datalist id="locationSuggestions"></datalist>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-save">Guardar</button>
+                    <button type="button" class="btn-cancel-modal" onclick="closeModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Alert Modal -->
+    <div class="modal-overlay" id="alert-modal">
+        <div class="modal" style="max-width:400px;text-align:center;">
+            <p id="alert-msg" style="margin:1rem 0;font-size:1.1rem;"></p>
+            <button onclick="document.getElementById('alert-modal').classList.remove('active')" class="btn-save" style="margin-top:0.5rem;">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal" style="max-width:400px;text-align:center;">
+            <p id="confirm-pregunta" style="margin:1rem 0;font-size:1.1rem;"></p>
+            <div style="display:flex;gap:1rem;justify-content:center;">
+                <button id="confirm-si" class="btn-save">Sí</button>
+                <button onclick="document.getElementById('confirm-modal').classList.remove('active')" class="btn-cancel-modal">No</button>
+            </div>
+        </div>
+    </div>
+    <script>
+const API = window.location.origin + "/src/";
+let misServicios = [];
+let servicios = [];
+let currentUserId = null;
+let csrfToken = '';
+var prestadorCurrentPage = 1;
+var prestadorPageSize = 12;
+var prestadorFiltered = [];
+
+function formatPrice(p) {
+    return '$ ' + parseInt(p||0).toLocaleString('es-CO') + ' cop';
+}
+
+function serviceImage(id) {
+    return 'https://picsum.photos/seed/svc' + id + '/400/250';
+}
+
+function renderStars(val, small) {
+    var s = '';
+    var size = small ? '0.9rem' : '1.1rem';
+    for (var i = 1; i <= 5; i++) {
+        s += i <= val ? '<span style="color:#ffc107;font-size:'+size+';">★</span>' : '<span style="color:#ccc;font-size:'+size+';">★</span>';
+    }
+    return s;
+}
+
+function esc(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function showAlert(msg) {
+    document.getElementById('alert-msg').textContent = msg;
+    document.getElementById('alert-modal').classList.add('active');
+}
+
+function togglePass(id, el) {
+    var inp = document.getElementById(id);
+    if (!inp) return;
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    el.className = inp.type === 'password' ? 'fa-regular fa-eye pw-toggle' : 'fa-regular fa-eye-slash pw-toggle';
+}
+
+function showAlertHtml(msg) {
+    document.getElementById('alert-msg').innerHTML = msg;
+    document.getElementById('alert-modal').classList.add('active');
+}
+
+function showConfirm(pregunta, onSi) {
+    document.getElementById('confirm-pregunta').innerHTML = pregunta;
+    document.getElementById('confirm-si').onclick = function() {
+        document.getElementById('confirm-modal').classList.remove('active');
+        onSi();
+    };
+    document.getElementById('confirm-modal').classList.add('active');
+}
+
+function api(url, data) {
+    return fetch(url + "?" + data, {method: "GET", credentials: "include"}).then(r => r.json());
+}
+
+function apiPost(url, data) {
+    data += '&_csrf=' + encodeURIComponent(csrfToken);
+    return fetch(url, {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: data,
+        credentials: "include"
+    }).then(r => r.json());
+}
+
+function logout() {
+    apiPost(API + "controllers/auth.php", "action=logout").finally(() => {
+        localStorage.removeItem("turismo_user");
+        window.location.href = "index.html";
+    });
+}
+
+function showPanel() {
+    document.getElementById("login-gate").style.display = "none";
+    document.getElementById("panel-main").style.display = "block";
+}
+
+function showLoginGate(msg) {
+    document.getElementById("login-gate").style.display = "flex";
+    document.getElementById("panel-main").style.display = "none";
+    var err = document.getElementById("login-gate-error");
+    if (err) err.textContent = msg || "";
+}
+
+function loginPrestador(e) {
+    e.preventDefault();
+    var email = document.getElementById("gate-email").value.trim();
+    var pass = document.getElementById("gate-password").value;
+    document.getElementById("gate-password").value = "";
+    apiPost(API + "controllers/auth.php", "action=login&email=" + encodeURIComponent(email) + "&password=" + encodeURIComponent(pass))
+    .then(function(d) {
+        if (d.success && d.user && d.user.role === "prestador") {
+            localStorage.setItem("turismo_user", JSON.stringify(d.user));
+            document.getElementById("header-user").textContent = "— " + d.user.name;
+            showPanel();
+    loadProfile();
+    loadData();
+    loadAvailability();
+    // Cargar ubicaciones existentes para autocompletar
+    api(API+"controllers/services.php", "action=locations").then(function(rows) {
+        if (!Array.isArray(rows) || !rows.length) return;
+        var dl = document.getElementById('locationSuggestions');
+        if (dl) dl.innerHTML = rows.map(function(r) { return '<option value="' + esc(r.location).replace(/"/g,'&quot;') + '">'; }).join('');
+    });
+        } else {
+            showLoginGate(d.error || "Credenciales incorrectas o no eres prestador");
+        }
+    })
+    .catch(function() {
+        showLoginGate("No se pudo conectar. Usa http://localhost:8080/prestador.html");
+    });
+}
+
+function requirePrestador() {
+    return fetch(API + "controllers/auth.php", { credentials: "include" })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            csrfToken = d.csrf_token || '';
+            if (d.authenticated && d.user && d.user.role === "prestador") {
+                localStorage.setItem("turismo_user", JSON.stringify(d.user));
+                currentUserId = d.user.id;
+                document.getElementById("header-user").textContent = "— " + d.user.name;
+                showPanel();
+                loadProfile();
+                loadData();
+                loadAvailability();
+                api(API+"controllers/services.php", "action=locations").then(function(rows) {
+                    if (!Array.isArray(rows) || !rows.length) return;
+                    var dl = document.getElementById('locationSuggestions');
+                    if (dl) dl.innerHTML = rows.map(function(r) { return '<option value="' + esc(r.location).replace(/"/g,'&quot;') + '">'; }).join('');
+                });
+                return true;
+            }
+            showLoginGate("");
+            return false;
+        })
+        .catch(function() {
+            showLoginGate("Servidor no disponible. ¿Está Docker en el puerto 8080?");
+            return false;
+        });
+}
+
+function showTab(tab, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+    if (tab === 'resenas') loadReviews();
+}
+
+
+function toggleProfile() {
+    var form = document.getElementById('profileForm');
+    var icon = document.getElementById('profile-toggle-icon');
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        icon.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
+    } else {
+        form.style.display = 'none';
+        icon.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+    }
+}
+
+function loadProfile() {
+    api(API + "controllers/provider.php", "action=profile").then(function(p) {
+        if (p.error) return;
+        document.getElementById("businessName").value = p.business_name || "";
+        document.getElementById("municipio").value = p.municipio || "";
+        document.getElementById("telefonoContacto").value = p.telefono_contacto || "";
+        document.getElementById("descripcionNegocio").value = p.descripcion || "";
+    });
+}
+
+function saveProfile(e) {
+    e.preventDefault();
+    var data = "action=save_profile";
+    data += "&business_name=" + encodeURIComponent(document.getElementById("businessName").value);
+    data += "&municipio=" + encodeURIComponent(document.getElementById("municipio").value);
+    data += "&telefono_contacto=" + encodeURIComponent(document.getElementById("telefonoContacto").value);
+    data += "&descripcion=" + encodeURIComponent(document.getElementById("descripcionNegocio").value);
+    apiPost(API + "controllers/provider.php", data).then(function(r) {
+        if (r.success) showAlert("Perfil guardado en la base de datos");
+        else showAlert(r.error || "Error al guardar");
+    });
+}
+
+function fillServiceSelect() {
+    var sel = document.getElementById("availServiceId");
+    if (!sel) return;
+    sel.innerHTML = misServicios.length ? misServicios.map(function(s) {
+        return '<option value="' + s.id + '">' + s.name + '</option>';
+    }).join("") : '<option value="">Crea un servicio primero</option>';
+    var el = document.getElementById("availDate");
+    if (el) el.min = new Date().toISOString().split("T")[0];
+}
+
+function loadAvailability() {
+    var c = document.getElementById("availabilityList");
+    if (!c) return;
+    api(API + "controllers/availability.php", "action=list").then(function(rows) {
+        if (!Array.isArray(rows) || !rows.length) {
+            c.innerHTML = '<p class="empty-state">Sin fechas de disponibilidad. Agrega cupos arriba.</p>';
+            return;
+        }
+        c.innerHTML = rows.map(function(a) {
+            return '<div class="availability-row"><div><strong>' + esc(a.service_name) + '</strong><br><i class="fa-solid fa-calendar"></i> ' + a.date + ' — <i class="fa-solid fa-users"></i> ' + a.slots_available + ' cupos</div><button type="button" class="btn-del-slot" onclick="deleteAvailability(' + a.id + ')"><i class="fa-solid fa-trash"></i></button></div>';
+        }).join("");
+    });
+}
+
+function loadReviews() {
+    var c = document.getElementById('reviewsListPrestador');
+    var s = document.getElementById('reviewsStats');
+    if (!c) return;
+    c.innerHTML = '<p style="text-align:center;padding:2rem;color:rgba(255,255,255,0.7);"><i class="fa-solid fa-spinner fa-spin"></i> Cargando reseñas...</p>';
+    if (s) s.innerHTML = '';
+    api(API + "controllers/reviews.php", "action=list_by_provider").then(function(d) {
+        if (d.error) { c.innerHTML = '<p style="text-align:center;padding:2rem;color:rgba(255,255,255,0.7);">Error: ' + esc(d.error) + '</p>'; return; }
+        var reviews = Array.isArray(d.reviews) ? d.reviews : [];
+        var stats = Array.isArray(d.stats) ? d.stats : [];
+        if (s && stats.length) {
+            var h = '<div class="reviews-stats-grid">';
+            stats.forEach(function(st) {
+                h += '<div class="reviews-stat-card"><div class="stat-number">' + renderStars(parseFloat(st.average), true) + '</div><div class="stat-number" style="font-size:1.5rem;">' + st.average + ' / 5</div><div class="stat-label">' + esc(st.name) + ' (' + st.total + ' reseñas)</div></div>';
+            });
+            h += '</div>';
+            s.innerHTML = h;
+        } else if (s) {
+            s.innerHTML = '<p style="text-align:center;padding:1rem;color:rgba(255,255,255,0.7);">Sin reseñas aún para tus servicios.</p>';
+        }
+        if (!reviews.length) {
+            c.innerHTML = '<p style="text-align:center;padding:2rem;color:rgba(255,255,255,0.7);"><i class="fa-solid fa-star empty-state-icon"></i><br>Nadie ha calificado tus servicios todavía.</p>';
+            return;
+        }
+        c.innerHTML = reviews.map(function(r) {
+            return '<div class="review-card">' +
+                '<div class="review-header">' +
+                '<div class="review-avatar">' + esc(r.tourist_name.charAt(0).toUpperCase()) + '</div>' +
+                '<div><strong>' + esc(r.tourist_name) + '</strong> ' + renderStars(parseInt(r.rating)) + '</div>' +
+                '</div>' +
+                '<div class="review-service"><i class="fa-solid fa-concierge-bell"></i> ' + esc(r.service_name) + '</div>' +
+                (r.comment ? '<p class="review-comment">' + esc(r.comment) + '</p>' : '') +
+                '<div class="review-date">' + r.created_at + '</div>' +
+                '</div>';
+        }).join('');
+    });
+}
+
+function saveAvailability(e) {
+    e.preventDefault();
+    if (!misServicios.length) { showAlert("Crea un servicio primero"); return; }
+    var data = "action=set&service_id=" + document.getElementById("availServiceId").value;
+    data += "&date=" + document.getElementById("availDate").value;
+    data += "&slots_available=" + document.getElementById("availSlots").value;
+    apiPost(API + "controllers/availability.php", data).then(function(r) {
+        if (r.success) { document.getElementById("availDate").value = ""; loadAvailability(); }
+        else showAlert(r.error || "Error");
+    });
+}
+
+function deleteAvailability(id) {
+    showConfirm("¿Eliminar esta fecha de disponibilidad?", function() {
+        apiPost(API + "controllers/availability.php", "action=delete&id=" + id).then(function(r) {
+            if (r.success) loadAvailability();
+            else showAlert(r.error || "Error");
+        });
+    });
+}
+
+
+function renderServices(todos) {
+    todos = todos || servicios;
+    const q = (document.getElementById('serviceSearch')?.value || '').toLowerCase();
+    prestadorFiltered = todos.filter(function(s) {
+        return !q || s.name.toLowerCase().includes(q) || s.type.toLowerCase().includes(q) || (s.location || '').toLowerCase().includes(q);
+    });
+    var totalPages = Math.ceil(prestadorFiltered.length / prestadorPageSize) || 1;
+    if (prestadorCurrentPage > totalPages) prestadorCurrentPage = totalPages;
+    var start = (prestadorCurrentPage - 1) * prestadorPageSize;
+    var page = prestadorFiltered.slice(start, start + prestadorPageSize);
+    var c = document.getElementById('servicesList');
+    if (!page.length) {
+        c.innerHTML = '<div class="empty-state"><p>' + (todos.length ? 'Sin resultados' : 'No hay servicios disponibles') + '</p></div>';
+        document.getElementById('prestador-pagination').innerHTML = '';
+        return;
+    }
+    c.innerHTML = page.map(function(s) {
+        var img = serviceImage(s.id);
+        return '<div class="service-card-prestador" style="background-image:linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.7)),url(' + img + ');background-size:cover;background-position:center;color:white;">' +
+            '<span class="type" style="background:rgba(255,255,255,0.2);color:white;"><i class="fa-solid fa-tag"></i> ' + esc(s.type) + '</span>' +
+            '<h3 style="color:white;">' + esc(s.name) + '</h3>' +
+            '<p class="description" style="color:rgba(255,255,255,0.8);">' + esc(s.description || "Sin descripción") + '</p>' +
+            '<p class="location" style="color:rgba(255,255,255,0.9);"><i class="fa-solid fa-location-dot"></i> ' + esc(s.location) + '</p>' +
+            '<p class="price" style="color:white;">' + formatPrice(s.price) + ' <small>/persona</small></p>' +
+            (s.provider_name ? '<p class="card-business" style="color:rgba(255,255,255,0.8);"><i class="fa-solid fa-store"></i> ' + esc(s.business_name || s.provider_name) + '</p>' : '') +
+            '<div class="actions">' +
+                '<button class="btn-edit" onclick="editService(' + s.id + ')"><i class="fa-solid fa-edit"></i> Editar</button>' +
+                '<button class="btn-delete" onclick="deleteService(' + s.id + ')"><i class="fa-solid fa-trash"></i> Eliminar</button>' +
+            '</div>' +
+        '</div>';
+    }).join('');
+    var p = document.getElementById('prestador-pagination');
+    if (totalPages <= 1) { p.innerHTML = ''; return; }
+    var btns = [];
+    if (prestadorCurrentPage > 1) btns.push('<button data-pag="prev" style="padding:0.4rem 0.8rem;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:0.9rem;background:#e8f5e9;color:#2E7D32;">‹ Ant</button>');
+    for (var i = 1; i <= totalPages; i++) {
+        btns.push('<button data-pag="' + i + '" style="padding:0.4rem 0.8rem;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:0.9rem;' + (i === prestadorCurrentPage ? 'background:#2E7D32;color:white;' : 'background:#e8f5e9;color:#2E7D32;') + '">' + i + '</button>');
+    }
+    if (prestadorCurrentPage < totalPages) btns.push('<button data-pag="next" style="padding:0.4rem 0.8rem;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:0.9rem;background:#e8f5e9;color:#2E7D32;">Sig ›</button>');
+    p.innerHTML = btns.join('');
+    var container = document.getElementById('servicesList');
+    if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+(function() {
+    var el = document.getElementById('prestador-pagination');
+    if (!el) return;
+    el.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-pag]');
+        if (!btn) return;
+        var pag = btn.getAttribute('data-pag');
+        if (pag === 'prev') {
+            prestadorCurrentPage = prestadorCurrentPage - 1;
+            if (prestadorCurrentPage < 1) prestadorCurrentPage = 1;
+        } else if (pag === 'next') {
+            prestadorCurrentPage = prestadorCurrentPage + 1;
+        } else {
+            var n = parseInt(pag, 10);
+            if (!isNaN(n)) prestadorCurrentPage = n;
+        }
+        renderServices();
+    });
+})();
+
+function loadData() {
+    document.getElementById('servicesList').innerHTML = '<div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i><p>Cargando...</p></div>';
+    document.getElementById('reservasPendientes').innerHTML = '<div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i><p>Cargando...</p></div>';
+    document.getElementById('historialReservas').innerHTML = '<div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i><p>Cargando...</p></div>';
+    
+    api(API+"controllers/services.php", "action=list").then(function(all) {
+        servicios = Array.isArray(all) ? all : [];
+        misServicios = servicios.filter(function(x) { return x.provider_id == currentUserId; });
+        var todos = servicios;
+        fillServiceSelect();
+        document.getElementById('stat-servicios').textContent = misServicios.length || 0;
+        renderServices(todos);
+    });
+    
+    api(API+"controllers/reservations.php", "action=pending").then(d => {
+        if (!Array.isArray(d)) { d = []; }
+        var pendientes = d.filter(function(r) { return r.status === 'pendiente'; });
+        var hoy = new Date().toISOString().split('T')[0];
+        document.getElementById('stat-reservas').textContent = pendientes.length || 0;
+        document.getElementById('reservasPendientes').innerHTML = d.length ? d.map(function(r) {
+            var actions = '';
+            if (r.status === 'pendiente') {
+                actions = '<button class="btn-confirm" onclick="confirmUpdateStatus(' + r.id + ', \'confirmada\')"><i class="fa-solid fa-check"></i> Confirmar</button>' +
+                          '<button class="btn-cancel" onclick="confirmUpdateStatus(' + r.id + ', \'cancelada\')"><i class="fa-solid fa-times"></i> Cancelar</button>';
+            } else if (r.status === 'confirmada' && r.reservation_date <= hoy) {
+                actions = '<button class="btn-complete" onclick="confirmUpdateStatus(' + r.id + ', \'completada\')"><i class="fa-solid fa-check-double"></i> Completar</button>' +
+                          '<button class="btn-cancel" onclick="confirmUpdateStatus(' + r.id + ', \'cancelada\')"><i class="fa-solid fa-times"></i> Cancelar</button>';
+            } else if (r.status === 'confirmada') {
+                actions = '<span class="badge-upcoming">Próximo</span>';
+            }
+            return '<div class="reservation-card-prestador">' +
+                '<div class="info">' +
+                    '<h4><i class="fa-solid fa-bell"></i> ' + esc(r.service_name) + ' <span class="status ' + esc(r.status) + '">' + esc(r.status) + '</span></h4>' +
+                    '<p><i class="fa-solid fa-building"></i> ' + esc(r.business_name || r.provider_name) + '</p>' +
+                    '<p><i class="fa-solid fa-calendar"></i> Fecha: ' + esc(r.reservation_date) + '</p>' +
+                    '<p><i class="fa-solid fa-user"></i> Cliente: ' + esc(r.tourist_name) + ' | <i class="fa-solid fa-phone"></i> ' + esc(r.telefono || 'Sin teléfono') + '</p>' +
+                '</div>' +
+                (actions ? '<div class="reservation-actions">' + actions + '</div>' : '') +
+            '</div>';
+        }).join('') : '<div class="empty-state"><p>No hay reservas pendientes o próximas</p></div>';
+    });
+    
+    api(API+"controllers/reservations.php", "action=provider").then(d => {
+        if (!Array.isArray(d)) return;
+        let confirmadas = d.filter(r => r.status === 'confirmada').length;
+        let completadas = d.filter(r => r.status === 'completada').length;
+        let ingresos = d.filter(r => r.status === 'completada').reduce((sum, r) => sum + (parseFloat(r.service_price) || 0), 0);
+        document.getElementById('stat-confirmadas').textContent = confirmadas;
+        document.getElementById('stat-completadas').textContent = completadas;
+        document.getElementById('stat-ingresos').textContent = '$ ' + parseInt(ingresos).toLocaleString('es-CO') + ' cop';
+        document.getElementById('historialReservas').innerHTML = d.length ? d.map(r =>
+            '<div class="reservation-card-prestador">' +
+                '<div class="info">' +
+                '<h4>' + esc(r.service_name) + ' <span class="status ' + esc(r.status) + '">' + esc(r.status) + '</span></h4>' +
+                '<p><i class="fa-solid fa-building"></i> ' + esc(r.business_name || r.provider_name) + '</p>' +
+                '<p><i class="fa-solid fa-calendar"></i> ' + esc(r.reservation_date) + ' | <i class="fa-solid fa-user"></i> ' + esc(r.tourist_name) + '</p>' +
+                '<p><i class="fa-solid fa-phone"></i> ' + esc(r.telefono || 'Sin teléfono') + ' | <i class="fa-solid fa-money-bill"></i> ' + formatPrice(r.service_price) + ' /persona</p>' +
+                '</div>' +
+            '</div>'
+        ).join('') : '<div class="empty-state"><p>Sin historial de reservas</p></div>';
+    });
+}
+
+function openModal(id = null) {
+    document.getElementById('serviceModal').classList.add('active');
+    if(id) {
+        document.getElementById('modalTitle').textContent = 'Editar Servicio';
+    } else {
+        document.getElementById('modalTitle').textContent = 'Nuevo Servicio';
+        document.getElementById('serviceId').value = '';
+        document.getElementById('serviceName').value = '';
+        document.getElementById('serviceType').value = 'alojamiento';
+        document.getElementById('serviceDescription').value = '';
+        document.getElementById('serviceCapacity').value = '1';
+        document.getElementById('servicePrice').value = '';
+        document.getElementById('serviceLocation').value = '';
+    }
+}
+
+function closeModal() {
+    document.getElementById('serviceModal').classList.remove('active');
+}
+
+function saveService(e) {
+    e.preventDefault();
+    let btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+    let id = document.getElementById('serviceId').value;
+    let data = "name=" + encodeURIComponent(document.getElementById('serviceName').value);
+    data += "&type=" + document.getElementById('serviceType').value;
+    data += "&description=" + encodeURIComponent(document.getElementById('serviceDescription').value);
+    data += "&capacity=" + document.getElementById('serviceCapacity').value;
+    data += "&price=" + document.getElementById('servicePrice').value;
+    data += "&location=" + encodeURIComponent(document.getElementById('serviceLocation').value);
+    data += id ? "&id=" + id + "&action=update" : "&action=create";
+    
+    apiPost(API+"controllers/services.php", data).then(d => {
+        btn.disabled = false;
+        btn.innerHTML = 'Guardar';
+        if (d.error) { showAlert(d.error); return; }
+        closeModal();
+        showAlertHtml('<i class="fa-solid fa-check-circle" style="color:#2E7D32;"></i> ' + (id ? 'Servicio actualizado' : 'Servicio creado') + ' correctamente');
+        loadData();
+    }).catch(function() {
+        btn.disabled = false;
+        btn.innerHTML = 'Guardar';
+        showAlert('Error de conexión');
+    });
+}
+
+function editService(id) {
+    let s = servicios.find(x => String(x.id) === String(id));
+    if (!s) return;
+    openModal(id);
+    document.getElementById('serviceId').value = id;
+    document.getElementById('serviceName').value = s.name || '';
+    document.getElementById('serviceType').value = s.type || 'alojamiento';
+    document.getElementById('serviceDescription').value = s.description || '';
+    document.getElementById('serviceCapacity').value = s.capacity || 1;
+    document.getElementById('servicePrice').value = s.price || 0;
+    document.getElementById('serviceLocation').value = s.location || '';
+}
+
+function deleteService(id) {
+    showConfirm('¿Estás seguro de eliminar este servicio?', function() {
+        apiPost(API+"controllers/services.php", "action=delete&id=" + id).then(d => {
+            loadData();
+        });
+    });
+}
+
+function confirmUpdateStatus(id, status) {
+    const labels = { 'confirmada': 'confirmar', 'cancelada': 'cancelar', 'completada': 'completar' };
+    showConfirm('Seguro de <b>' + (labels[status] || status) + '</b> esta reserva?', function() {
+        apiPost(API+"controllers/reservations.php", "action=update_status&id=" + id + "&status=" + status).then(d => {
+            if (d.error) { showAlert(d.error); return; }
+            showAlertHtml('<i class="fa-solid fa-check-circle" style="color:#2E7D32;"></i> Reserva ' + (labels[status] || status) + ' correctamente');
+            loadData();
+        }).catch(function() {
+            showAlert('Error de conexión');
+        });
+    });
+}
+
+window.onload = function() {
+    requirePrestador().then(function(ok) {
+        if (ok) { loadProfile(); loadData(); loadAvailability(); }
+    });
+};
+    </script>
+</body>
+</html>

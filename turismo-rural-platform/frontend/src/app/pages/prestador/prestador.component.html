@@ -1,0 +1,174 @@
+﻿<div class="prestador-wrap">
+  <header class="hub-header">
+    <h1>Panel prestador</h1>
+    <p>{{ auth.user()?.username }}</p>
+    <button type="button" class="btn-logout" (click)="logout()">Cerrar sesión</button>
+  </header>
+  @if (message()) { <p class="loading-text">{{ message() }}</p> }
+  <nav class="hub-grid">
+    <button type="button" class="hub-card" [class.active]="tab()==='perfil'" (click)="setTab('perfil')">Mi negocio</button>
+    <button type="button" class="hub-card" [class.active]="tab()==='servicios'" (click)="setTab('servicios')">Servicios</button>
+    <button type="button" class="hub-card" [class.active]="tab()==='reservas'" (click)="setTab('reservas')">Reservas</button>
+    <button type="button" class="hub-card" [class.active]="tab()==='disponibilidad'" (click)="setTab('disponibilidad')">
+      <i class="fa-solid fa-calendar-plus"></i> Disponibilidad
+    </button>
+    <button type="button" class="hub-card" [class.active]="tab()==='resenas'" (click)="setTab('resenas')">
+      <i class="fa-solid fa-star"></i> Reseñas
+    </button>
+  </nav>
+
+  @if (tab() === 'perfil') {
+    <section class="glass-panel" style="margin:1rem">
+      <form (ngSubmit)="saveProfile()">
+        <p><label>Nombre negocio <input [(ngModel)]="businessName" name="bn" required /></label></p>
+        <p><label>Municipio <input [(ngModel)]="municipio" name="mun" /></label></p>
+        <p><label>Descripción <textarea [(ngModel)]="descripcion" name="desc"></textarea></label></p>
+        <p><label>Teléfono <input [(ngModel)]="telefono" name="tel" /></label></p>
+        <button type="submit" class="btn-reservar">Guardar perfil</button>
+      </form>
+    </section>
+  }
+
+  @if (tab() === 'servicios') {
+    <section class="glass-panel" style="margin:1rem">
+      <h3>{{ serviceForm.id ? 'Editar' : 'Nuevo' }} servicio</h3>
+      <form (ngSubmit)="saveService()">
+        <p><input [(ngModel)]="serviceForm.name" name="sn" placeholder="Nombre" required /></p>
+        <p><select [(ngModel)]="serviceForm.type" name="st">
+          <option value="alojamiento">Alojamiento</option>
+          <option value="recreacion">Recreación</option>
+          <option value="gastronomia">Gastronomía</option>
+          <option value="actividades">Actividades</option>
+        </select></p>
+        <p><textarea [(ngModel)]="serviceForm.description" name="sd" placeholder="Descripción"></textarea></p>
+        <p><input type="number" [(ngModel)]="serviceForm.capacity" name="sc" min="1" /> personas</p>
+        <p><input type="number" [(ngModel)]="serviceForm.price" name="sp" min="0" /> COP</p>
+        <p><input [(ngModel)]="serviceForm.location" name="sl" placeholder="Ubicación" /></p>
+        <button type="submit" class="btn-reservar">Guardar</button>
+      </form>
+      <div class="services-grid">
+        @for (s of services(); track s.id) {
+          <article class="service-card">
+            <h5>{{ s.name }}</h5>
+            <p>{{ s.type }} · {{ s.location }}</p>
+            <p>{{ s.price | currency:'COP':'symbol-narrow':'1.0-0' }}</p>
+            <button type="button" (click)="editService(s)">Editar</button>
+            <button type="button" (click)="deleteService(s.id)">Eliminar</button>
+          </article>
+        }
+      </div>
+    </section>
+  }
+
+  @if (tab() === 'reservas') {
+    <section class="glass-panel" style="margin:1rem">
+      @if (!pending().length) {
+        <p class="loading-text">No hay reservas pendientes</p>
+      }
+      @for (r of pending(); track r.id) {
+        <article class="service-card">
+          <h5>{{ r.service_name }}</h5>
+          <p>{{ r.tourist_name }} · {{ r.reservation_date }}</p>
+          @if (r.telefono) {
+            <p><i class="fa-solid fa-phone"></i> {{ r.telefono }}</p>
+          }
+          <button type="button" class="btn-reservar" (click)="updateStatus(r.id, 'confirmada')">Confirmar</button>
+          <button type="button" class="btn-cancel-modal" (click)="updateStatus(r.id, 'cancelada')">Rechazar</button>
+        </article>
+      }
+    </section>
+  }
+
+  @if (tab() === 'disponibilidad') {
+    <section class="glass-panel availability-section" style="margin:1rem">
+      <h3><i class="fa-solid fa-calendar-days"></i> Cupos por fecha</h3>
+      @if (!services().length) {
+        <p class="loading-text">Crea un servicio antes de agregar disponibilidad.</p>
+      } @else {
+        <form class="availability-form" (ngSubmit)="saveAvailability()">
+          <label>
+            Servicio
+            <select [(ngModel)]="availServiceId" name="availSvc" required>
+              @for (s of services(); track s.id) {
+                <option [ngValue]="s.id">{{ s.name }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            Fecha
+            <input type="date" [(ngModel)]="availDate" name="availDate" [min]="minDate" required />
+          </label>
+          <label>
+            Cupos
+            <input type="number" [(ngModel)]="availSlots" name="availSlots" min="1" required />
+          </label>
+          <button type="submit" class="btn-reservar">
+            <i class="fa-solid fa-plus"></i> Agregar cupo
+          </button>
+        </form>
+      }
+      <div class="availability-list">
+        @if (!availability().length) {
+          <p class="loading-text">Sin fechas de disponibilidad. Agrega cupos arriba.</p>
+        }
+        @for (a of availability(); track a.id) {
+          <div class="availability-row">
+            <div>
+              <strong>{{ a.service_name }}</strong><br />
+              <i class="fa-solid fa-calendar"></i> {{ a.date }} -
+              <i class="fa-solid fa-users"></i> {{ a.slots_available }} cupos
+            </div>
+            <button type="button" class="btn-del-slot" (click)="deleteAvailability(a.id)" aria-label="Eliminar">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  @if (tab() === 'resenas') {
+    <section class="glass-panel" style="margin:1rem">
+      <h3><i class="fa-solid fa-star" style="color:#FBC02D;"></i> Reseñas de mis servicios</h3>
+      @if (!getServiceStats().length) {
+        <p class="loading-text">No hay servicios para mostrar estadísticas.</p>
+      }
+      <div class="services-grid" style="margin-bottom:1.5rem;">
+        @for (stat of getServiceStats(); track stat.id) {
+        <article class="service-card" style="text-align:center;">
+          <h5>{{ stat.name }}</h5>
+          @if (stat.avg_rating) {
+          <div class="stars-row">
+            @for (star of starsArray(stat.avg_rating); track $index) {
+            <i class="fa-solid fa-star" [style.color]="star === 1 ? '#FBC02D' : '#555'"></i>
+            }
+            <span class="stars-text">{{ stat.avg_rating }}</span>
+          </div>
+          } @else {
+          <p style="color:#888;font-style:italic;">Sin calificaciones</p>
+          }
+          <p><strong>{{ stat.total_reviews }}</strong> reseña(s)</p>
+        </article>
+        }
+      </div>
+      <h4>Reseñas individuales</h4>
+      @if (!reviews().length) {
+        <p class="loading-text">No hay reseñas aún.</p>
+      }
+      @for (r of reviews(); track r.id) {
+      <div style="border-bottom:1px solid rgba(255,255,255,0.1);padding:0.75rem 0;">
+        <div class="stars-row">
+          @for (star of starsArray(r.rating); track $index) {
+          <i class="fa-solid fa-star" [style.color]="star === 1 ? '#FBC02D' : '#555'" style="font-size:0.85rem;"></i>
+          }
+        </div>
+        <p><strong>{{ r.service_name }}</strong> — {{ r.tourist_name }}</p>
+        @if (r.comment) {
+        <p style="color:#ccc;font-style:italic;">"{{ r.comment }}"</p>
+        }
+        <p style="font-size:0.75rem;color:#888;">{{ r.created_at | slice:0:10 }}</p>
+      </div>
+      }
+    </section>
+  }
+</div>

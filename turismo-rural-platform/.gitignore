@@ -1,0 +1,46 @@
+# Sensitive files - NEVER commit
+.env
+.env.local
+.env.production
+.env.staging
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Docker volumes (data persistence)
+mysql_data/
+
+# Composer / Node dependencies (raíz PHP Composer)
+/vendor/
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+public/app/*
+!public/app/.htaccess
+
+# Font Awesome local (sí versionar en public)
+!public/vendor/
+!public/vendor/fontawesome/
+
+# Build artifacts
+dist/
+build/

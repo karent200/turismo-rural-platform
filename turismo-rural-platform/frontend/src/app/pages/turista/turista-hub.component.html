@@ -1,0 +1,198 @@
+﻿<div id="main-app">
+  <div class="bg-layer"></div>
+  <main class="hub-container">
+    <header class="hub-header">
+      <i class="fa-solid fa-mountain-sun header-icon"></i>
+      <h4><i class="fa-solid fa-leaf"></i> Turismo Rural</h4>
+      <h1>Nariño</h1>
+      <p>Hola, {{ auth.user()?.username }}</p>
+      <button type="button" class="btn-logout" (click)="logout()"><i class="fa-solid fa-door-open"></i> Cerrar sesión</button>
+    </header>
+    <nav class="hub-grid">
+      <button type="button" class="hub-card" (click)="openWindow('services')"><i class="fa-solid fa-mountain-sun"></i><span>Servicios</span></button>
+      <button type="button" class="hub-card" (click)="openWindow('map')"><i class="fa-solid fa-map-location-dot"></i><span>Mapa</span></button>
+      <button type="button" class="hub-card" (click)="openWindow('reservations')"><i class="fa-solid fa-calendar-check"></i><span>Mis reservas</span></button>
+    </nav>
+  </main>
+
+  @if (activeWindow() === 'services') {
+  <div class="window-overlay active" (click)="closeWindow()">
+    <div class="glass-panel" (click)="$event.stopPropagation()">
+      <button type="button" class="close-btn" (click)="closeWindow()"><i class="fa-solid fa-xmark"></i></button>
+      <h2>Servicios</h2>
+      <div class="filters-row">
+        <select [(ngModel)]="typeFilter" (change)="loadServices()">
+          <option value="">Todos</option>
+          <option value="alojamiento">Alojamiento</option>
+          <option value="recreacion">Recreación</option>
+          <option value="gastronomia">Gastronomía</option>
+          <option value="actividades">Actividades</option>
+        </select>
+        <input type="text" [(ngModel)]="locationFilter" (input)="onLocationInput()" placeholder="Ubicación" list="locationList" autocomplete="off">
+        <datalist id="locationList">
+          @for (loc of locations(); track loc.location) {
+          <option [value]="loc.location"></option>
+          }
+        </datalist>
+        <button type="button" class="btn-reservar" (click)="loadServices()">Filtrar</button>
+      </div>
+      @if (loadingServices()) { <p class="loading-text">Cargando...</p> }
+      @else if (!services().length) { <p class="loading-text">No hay servicios</p> }
+      <div class="services-grid">
+        @for (s of services(); track s.id) {
+          <article class="service-card">
+            <h5>{{ s.name }}</h5>
+            <p class="description">{{ (s.description || '') | slice:0:80 }}</p>
+            @if (s.avg_rating) {
+            <div class="stars-row">
+              @for (star of starsArray(s.avg_rating); track $index) {
+              <i class="fa-solid" [class.fa-star]="star === 1" [class.fa-star-half-stroke]="star === 0"></i>
+              }
+              <span class="stars-text">({{ s.total_reviews }})</span>
+            </div>
+            }
+            <p class="service-price">{{ s.price | currency:'COP':'symbol-narrow':'1.0-0' }}</p>
+            <div class="card-actions">
+              @if (s.provider_name) {
+              <button type="button" class="btn-ver-perfil" (click)="verProveedor(s)"><i class="fa-solid fa-store"></i> {{ s.provider_name }}</button>
+              }
+              <button type="button" class="btn-reservar" (click)="startReserva(s)">Reservar</button>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  </div>
+  }
+
+  @if (activeWindow() === 'perfil' && selectedProvider) {
+  <div class="window-overlay active" (click)="closeWindow()">
+    <div class="glass-panel" style="max-width:500px;" (click)="$event.stopPropagation()">
+      <button type="button" class="close-btn" (click)="closeWindow()"><i class="fa-solid fa-xmark"></i></button>
+      <h2><i class="fa-solid fa-store" style="color:#FBC02D;"></i> {{ selectedProvider.provider_name }}</h2>
+      <div class="perfil-content">
+        <div class="perfil-section">
+          <h3><i class="fa-solid" [class]="typeIcon(selectedProvider.type)"></i> {{ selectedProvider.type }}</h3>
+          <p><strong>{{ selectedProvider.name }}</strong></p>
+          <p>{{ selectedProvider.description || 'Sin descripción' }}</p>
+          <div class="card-meta" style="margin-top:0.75rem;">
+            <span><i class="fa-solid fa-location-dot"></i> {{ selectedProvider.location }}</span>
+            <span><i class="fa-solid fa-users"></i> {{ selectedProvider.capacity || 1 }} pers.</span>
+            <span><i class="fa-solid fa-coins" style="color:#2E7D32;"></i> {{ selectedProvider.price | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+          </div>
+          @if (selectedProvider.avg_rating) {
+          <div class="stars-row" style="margin-top:0.5rem;">
+            @for (star of starsArray(selectedProvider.avg_rating); track $index) {
+            <i class="fa-solid" [class.fa-star]="star === 1" [class.fa-star-half-stroke]="star === 0"></i>
+            }
+            <span class="stars-text">({{ selectedProvider.total_reviews }})</span>
+          </div>
+          }
+        </div>
+        <div class="perfil-section">
+          <h3><i class="fa-solid fa-concierge-bell"></i> Servicios del proveedor</h3>
+          <p>{{ getProviderServiceNames(selectedProvider.provider_name) }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  @if (activeWindow() === 'map') {
+  <div class="window-overlay active" (click)="closeWindow()">
+    <div class="glass-panel" (click)="$event.stopPropagation()">
+      <h2>Mapa</h2>
+      <iframe title="Mapa" src="https://maps.google.com/maps?q=Pasto,Nariño&output=embed" width="100%" height="360" style="border:0;border-radius:12px"></iframe>
+    </div>
+  </div>
+  }
+
+  @if (activeWindow() === 'reservations') {
+  <div class="window-overlay active" (click)="closeWindow()">
+    <div class="glass-panel" (click)="$event.stopPropagation()">
+      <button type="button" class="close-btn" (click)="closeWindow()"><i class="fa-solid fa-xmark"></i></button>
+      <h2>Mis reservas</h2>
+      @if (loadingReservations()) { <p class="loading-text">Cargando...</p> }
+      @else if (!reservations().length) { <p class="loading-text">No tienes reservas</p> }
+      @for (r of reservations(); track r.id) {
+      <div class="reserva-card">
+        <div class="reserva-info">
+          <strong>{{ r.service_name || 'Servicio' }}</strong>
+          <span><i class="fa-solid fa-calendar"></i> {{ r.reservation_date }}</span>
+          <span><i class="fa-solid fa-users"></i> {{ r.personas }} pers.</span>
+        </div>
+        <div class="reserva-actions">
+          <span class="status-badge {{ statusClass(r.status) }}">{{ r.status }}</span>
+          @if (r.status === 'completada' && !r.has_review) {
+          <button type="button" class="btn-reservar" style="font-size:0.75rem;padding:4px 10px;" (click)="openRating(r)">Calificar</button>
+          }
+          @if (r.status === 'pendiente' || r.status === 'confirmada') {
+          <button type="button" class="btn-cancel-modal" style="font-size:0.75rem;padding:4px 10px;" (click)="cancelarReserva(r.id)">Cancelar</button>
+          }
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  @if (activeWindow() === 'reservar' && selectedService) {
+  <div class="window-overlay active" (click)="closeWindow()">
+    <div class="glass-panel" style="max-width:400px;" (click)="$event.stopPropagation()">
+      <button type="button" class="close-btn" (click)="closeWindow()"><i class="fa-solid fa-xmark"></i></button>
+      <h2>Reservar</h2>
+      <p><strong>{{ selectedService.name }}</strong></p>
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" [(ngModel)]="reservaFecha" [min]="minDate" />
+      </div>
+      @if (reservaError) { <p class="error-msg">{{ reservaError }}</p> }
+      <div class="form-group">
+        <label>Personas</label>
+        <input type="number" [(ngModel)]="reservaPersonas" min="1" [max]="selectedService.capacity ?? 1" />
+      </div>
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input type="tel" [(ngModel)]="reservaTelefono" placeholder="Tu número de contacto" />
+      </div>
+      <button type="button" class="btn-auth-primary" (click)="confirmarReserva()">Confirmar reserva</button>
+    </div>
+  </div>
+  }
+
+  @if (activeWindow() === 'confirmacion') {
+  <div class="window-overlay active" (click)="closeWindow()">
+    <div class="glass-panel" style="max-width:350px;text-align:center;" (click)="$event.stopPropagation()">
+      <div style="font-size:3rem;color:#2E7D32;margin-bottom:0.5rem;">✓</div>
+      <h2>¡Reserva confirmada!</h2>
+      <p>{{ confirmText }}</p>
+      <button type="button" class="btn-auth-primary" (click)="closeWindow()">Cerrar</button>
+    </div>
+  </div>
+  }
+
+  @if (activeWindow() === 'calificar') {
+  <div class="window-overlay active" (click)="closeWindow()">
+    <div class="glass-panel" style="max-width:400px;text-align:center;" (click)="$event.stopPropagation()">
+      <button type="button" class="close-btn" (click)="closeWindow()"><i class="fa-solid fa-xmark"></i></button>
+      <h2>Calificar servicio</h2>
+      <p><strong>{{ ratingServiceName }}</strong></p>
+      <div class="rating-stars">
+        @for (star of [1,2,3,4,5]; track star) {
+        <i class="fa-solid fa-star" 
+           [style.color]="star <= (ratingHover || ratingValue) ? '#FBC02D' : '#555'"
+           (mouseenter)="ratingHover = star" 
+           (mouseleave)="ratingHover = 0"
+           (click)="ratingValue = star"></i>
+        }
+      </div>
+      @if (ratingError) { <p class="error-msg">{{ ratingError }}</p> }
+      <div class="form-group" style="margin-top:1rem;">
+        <label>Comentario (opcional)</label>
+        <textarea [(ngModel)]="ratingComment" placeholder="Tu opinión..." rows="3"></textarea>
+      </div>
+      <button type="button" class="btn-auth-primary" (click)="submitRating()">Enviar calificación</button>
+    </div>
+  </div>
+  }
+</div>

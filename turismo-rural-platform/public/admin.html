@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Turismo Rural Nariño</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏔️</text></svg>">
+    <link href="vendor/fontawesome/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Poppins, sans-serif; }
+        body { background: #f4f6f8; min-height: 100vh; }
+        .header {
+            background: linear-gradient(135deg, #1B5E20, #2E7D32);
+            color: white;
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .header h1 { font-size: 1.4rem; }
+        .header h1 i { color: #FBC02D; margin-right: 0.5rem; }
+        .header-actions { display: flex; gap: 0.5rem; }
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
+        .btn-danger { background: #E53935; color: white; }
+        .btn-success { background: #2E7D32; color: white; }
+        .btn-warning { background: #F57C00; color: white; }
+        .btn-outline { background: white; color: #1B5E20; border: 1px solid #1B5E20; }
+        .btn-primary { background: #1B5E20; color: white; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+        .stat i { font-size: 1.5rem; color: #2E7D32; margin-bottom: 0.5rem; display: block; }
+        .stat .num { font-size: 1.8rem; font-weight: 700; color: #1B5E20; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+        }
+        .card h2 { font-size: 1.1rem; margin-bottom: 1rem; color: #1B5E20; }
+        .card h2 i { margin-right: 0.4rem; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { text-align: left; padding: 0.65rem; border-bottom: 1px solid #eee; }
+        th { color: #666; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-admin { background: #e3f2fd; color: #1565c0; }
+        .badge-prestador { background: #fff3e0; color: #e65100; }
+        .badge-turista { background: #e8f5e9; color: #2e7d32; }
+        .badge-pendiente { background: #fff8e1; color: #f57f17; }
+        .badge-confirmada { background: #e8f5e9; color: #2e7d32; }
+        .badge-cancelada { background: #fbe9e7; color: #c62828; }
+        .badge-completada { background: #e3f2fd; color: #1565c0; }
+        .actions-cell { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+        .tab-bar {
+            display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.5rem;
+        }
+        .tab-btn {
+            border: none; background: transparent; padding: 0.5rem 1rem; cursor: pointer;
+            font-weight: 600; font-size: 0.85rem; color: #666; border-radius: 8px 8px 0 0;
+        }
+        .tab-btn.active { color: #1B5E20; background: #e8f5e9; }
+        .modal-overlay {
+            display: none; position: fixed; z-index: 1000; inset: 0;
+            background: rgba(0,0,0,0.5); justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: white; border-radius: 16px; padding: 2rem;
+            max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .modal h3 { margin-bottom: 1rem; color: #1B5E20; }
+        .modal input, .modal select {
+            width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 8px;
+            margin-bottom: 0.8rem; font-size: 0.9rem;
+        }
+        .modal label { font-weight: 600; font-size: 0.85rem; color: #333; margin-bottom: 0.3rem; display: block; }
+        .modal-btn-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+        .search-box {
+            padding: 0.5rem 0.8rem; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 0.85rem; margin-bottom: 0.8rem; width: 100%; max-width: 300px;
+        }
+        .empty-state { text-align: center; padding: 2rem; color: #999; }
+        .empty-state i { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1><i class="fa-solid fa-shield-halved"></i> Panel Administrativo</h1>
+        <div class="header-actions">
+            <button class="btn btn-outline" onclick="location.href='index.html'"><i class="fa-solid fa-home"></i> Inicio</button>
+            <button class="btn btn-danger" onclick="logout()"><i class="fa-solid fa-door-open"></i> Salir</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="stats" id="stats"></section>
+
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="showTab('users')"><i class="fa-solid fa-users"></i> Usuarios</button>
+            <button class="tab-btn" onclick="showTab('reservations')"><i class="fa-solid fa-calendar-check"></i> Reservas</button>
+            <button class="tab-btn" onclick="showTab('services')"><i class="fa-solid fa-concierge-bell"></i> Servicios</button>
+            <button class="tab-btn" onclick="showTab('reviews')"><i class="fa-solid fa-star"></i> Reseñas</button>
+        </div>
+
+        <div id="tab-users">
+            <div class="card">
+                <h2><i class="fa-solid fa-users"></i> Usuarios</h2>
+                <input class="search-box" id="userSearch" placeholder="Buscar usuario..." oninput="renderUsers()">
+                <table>
+                    <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Registro</th><th>Acciones</th></tr></thead>
+                    <tbody id="usersTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-reservations" style="display:none;">
+            <div class="card">
+                <h2><i class="fa-solid fa-calendar-check"></i> Reservas</h2>
+                <table>
+                    <thead><tr><th>Servicio</th><th>Turista</th><th>Fecha</th><th>Personas</th><th>Teléfono</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody id="reservationsTable"></tbody>
+                </table>
+                <div id="admin-reservations-pagination" style="display:flex;justify-content:center;gap:0.5rem;margin-top:1rem;flex-wrap:wrap;"></div>
+            </div>
+        </div>
+
+        <div id="tab-services" style="display:none;">
+            <div class="card">
+                <h2><i class="fa-solid fa-concierge-bell"></i> Servicios</h2>
+                <table>
+                    <thead><tr><th>ID</th><th>Nombre</th><th>Tipo</th><th>Precio</th><th>Capacidad</th><th>Ubicación</th><th>Proveedor</th><th>Acciones</th></tr></thead>
+                    <tbody id="servicesTable"></tbody>
+                </table>
+                <div id="admin-services-pagination" style="display:flex;justify-content:center;gap:0.5rem;margin-top:1rem;flex-wrap:wrap;"></div>
+            </div>
+        </div>
+
+        <div id="tab-reviews" style="display:none;">
+            <div class="card">
+                <h2><i class="fa-solid fa-star"></i> Reseñas</h2>
+                <table>
+                    <thead><tr><th>ID</th><th>Servicio</th><th>Turista</th><th>Calificación</th><th>Comentario</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                    <tbody id="reviewsTable"></tbody>
+                </table>
+                <div id="admin-reviews-pagination" style="display:flex;justify-content:center;gap:0.5rem;margin-top:1rem;flex-wrap:wrap;"></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="alert-modal">
+        <div class="modal" style="max-width:400px;text-align:center;">
+            <p id="alert-msg" style="margin:1rem 0;font-size:1.1rem;"></p>
+            <button onclick="closeModal('alert-modal')" class="btn btn-success">Aceptar</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal" style="max-width:400px;text-align:center;">
+            <p id="confirm-msg" style="margin:1rem 0;font-size:1.1rem;"></p>
+            <div class="modal-btn-row" style="justify-content:center;">
+                <button id="confirm-yes" class="btn btn-danger">Sí</button>
+                <button onclick="closeModal('confirm-modal')" class="btn btn-outline">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="edit-user-modal">
+        <div class="modal">
+            <h3><i class="fa-solid fa-user-edit"></i> Editar Usuario</h3>
+            <input type="hidden" id="edit-user-id">
+            <label>Nombre</label>
+            <input type="text" id="edit-user-name" maxlength="100">
+            <label>Email</label>
+            <input type="email" id="edit-user-email" maxlength="255">
+            <label>Rol</label>
+            <select id="edit-user-role">
+                <option value="turista">Turista</option>
+                <option value="prestador">Prestador</option>
+                <option value="admin">Admin</option>
+            </select>
+            <div class="modal-btn-row">
+                <button onclick="saveUser()" class="btn btn-success"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+                <button onclick="closeModal('edit-user-modal')" class="btn btn-outline">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="edit-service-modal">
+        <div class="modal">
+            <h3><i class="fa-solid fa-pen"></i> Editar Servicio</h3>
+            <input type="hidden" id="edit-service-id">
+            <label>Nombre del servicio</label>
+            <input type="text" id="edit-service-name" maxlength="200">
+            <label>Tipo</label>
+            <select id="edit-service-type">
+                <option value="alojamiento">Alojamiento</option>
+                <option value="recreacion">Recreación</option>
+                <option value="gastronomia">Gastronomía</option>
+                <option value="actividades">Actividades</option>
+            </select>
+            <label>Descripción</label>
+            <textarea id="edit-service-description" rows="3" maxlength="2000"></textarea>
+            <label>Precio (COP)</label>
+            <input type="number" id="edit-service-price" min="0" step="0.01">
+            <label>Capacidad (personas)</label>
+            <input type="number" id="edit-service-capacity" min="1" max="100">
+            <label>Ubicación</label>
+            <input type="text" id="edit-service-location" maxlength="200">
+            <div class="modal-btn-row">
+                <button onclick="saveService()" class="btn btn-success"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+                <button onclick="closeModal('edit-service-modal')" class="btn btn-outline">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+const API = window.location.origin + "/src/";
+let csrfToken = '';
+let usersData = [];
+let reservationsData = [];
+let servicesData = [];
+let currentTab = 'users';
+var adminPage = 1;
+var adminPageSize = 10;
+var adminReservPage = 1;
+var adminReservPageSize = 10;
+var adminReviewsPage = 1;
+var adminReviewsPageSize = 10;
+
+function formatPrice(p) {
+    return '$ ' + parseInt(p||0).toLocaleString('es-CO') + ' cop';
+}
+
+function esc(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function badge(role) { return 'badge badge-' + role; }
+
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+function showAlert(msg) {
+    document.getElementById('alert-msg').textContent = msg;
+    document.getElementById('alert-modal').classList.add('active');
+}
+
+function showConfirm(msg, onYes) {
+    document.getElementById('confirm-msg').innerHTML = msg;
+    document.getElementById('confirm-yes').onclick = function() {
+        closeModal('confirm-modal');
+        onYes();
+    };
+    document.getElementById('confirm-modal').classList.add('active');
+}
+
+function showTab(tab) {
+    currentTab = tab;
+    var labelMap = { users:'Usuarios', reservations:'Reservas', services:'Servicios', reviews:'Reseñas' };
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.toggle('active', b.textContent.includes(labelMap[tab] || tab)); });
+    document.getElementById('tab-users').style.display = tab === 'users' ? 'block' : 'none';
+    document.getElementById('tab-reservations').style.display = tab === 'reservations' ? 'block' : 'none';
+    document.getElementById('tab-services').style.display = tab === 'services' ? 'block' : 'none';
+    document.getElementById('tab-reviews').style.display = tab === 'reviews' ? 'block' : 'none';
+    if (tab === 'reviews') loadReviews();
+}
+
+function api(path) {
+    return fetch(API + path, { credentials: "include", cache: "no-cache" }).then(r => r.json());
+}
+
+function apiPost(path, body) {
+    body += '&_csrf=' + encodeURIComponent(csrfToken);
+    return fetch(API + path, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body,
+        credentials: "include"
+    }).then(r => r.json());
+}
+
+function renderUsers() {
+    const q = document.getElementById('userSearch').value.toLowerCase();
+    const filtered = usersData.filter(u =>
+        u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    );
+    document.getElementById('usersTable').innerHTML = filtered.map(u =>
+        "<tr>" +
+        "<td>" + u.id + "</td>" +
+        "<td>" + esc(u.name) + "</td>" +
+        "<td>" + esc(u.email) + "</td>" +
+        '<td><span class="' + badge(u.role) + '">' + esc(u.role === 'admin' ? 'Admin' : u.role === 'prestador' ? 'Prestador' : 'Turista') + "</span></td>" +
+        "<td style='font-size:0.8rem;color:#999;'>" + esc(u.created_at || '-') + "</td>" +
+        "<td><div class='actions-cell'>" +
+        '<button class="btn btn-sm btn-primary" onclick="editUser(' + u.id + ')"><i class="fa-solid fa-pen"></i></button> ' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteUser(' + u.id + ',\'' + esc(u.name).replace(/'/g,"\\'") + '\')"><i class="fa-solid fa-trash-can"></i></button>' +
+        "</div></td></tr>"
+    ).join("");
+    if (!filtered.length) {
+        document.getElementById('usersTable').innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-search"></i>Sin resultados</div></td></tr>';
+    }
+}
+
+function editUser(id) {
+    const u = usersData.find(x => x.id === id);
+    if (!u) return;
+    document.getElementById('edit-user-id').value = u.id;
+    document.getElementById('edit-user-name').value = u.name;
+    document.getElementById('edit-user-email').value = u.email;
+    document.getElementById('edit-user-role').value = u.role;
+    document.getElementById('edit-user-modal').classList.add('active');
+}
+
+function saveUser() {
+    const id = document.getElementById('edit-user-id').value;
+    const name = document.getElementById('edit-user-name').value.trim();
+    const email = document.getElementById('edit-user-email').value.trim().toLowerCase();
+    const role = document.getElementById('edit-user-role').value;
+    if (!name || !email) { showAlert('Nombre y email requeridos'); return; }
+    const btn = document.querySelector('#edit-user-modal .btn-success');
+    btn.disabled = true;
+    apiPost("controllers/admin.php", "action=update_user&id=" + id + "&name=" + encodeURIComponent(name) + "&email=" + encodeURIComponent(email) + "&role=" + role)
+    .then(d => {
+        if (d.error) { showAlert(d.error); btn.disabled = false; return; }
+        closeModal('edit-user-modal');
+        showAlert('Usuario actualizado correctamente');
+        loadUsers();
+        btn.disabled = false;
+    });
+}
+
+function deleteUser(id, name) {
+    showConfirm('Eliminar a <b>' + esc(name) + '</b>?<br><small style="color:#999;">Esta acción no se puede deshacer.</small>', function() {
+        apiPost("controllers/admin.php", "action=delete_user&id=" + id).then(d => {
+            if (d.error) { showAlert(d.error); return; }
+            showAlert('Usuario eliminado');
+            loadUsers();
+            loadStats();
+        });
+    });
+}
+
+function renderReservations() {
+    var total = reservationsData.length;
+    var totalPages = Math.ceil(total / adminReservPageSize) || 1;
+    if (adminReservPage > totalPages) adminReservPage = totalPages;
+    var start = (adminReservPage - 1) * adminReservPageSize;
+    var page = reservationsData.slice(start, start + adminReservPageSize);
+    var rows = page.map(function(r) {
+        const st = esc(r.status);
+        return "<tr>" +
+        "<td>" + esc(r.service_name) + "</td>" +
+        "<td>" + esc(r.tourist_name || '-') + "</td>" +
+        "<td>" + esc(r.reservation_date) + "</td>" +
+        "<td>" + (r.personas || 1) + "</td>" +
+        "<td>" + esc(r.telefono || '-') + "</td>" +
+        '<td><span class="badge badge-' + st + '">' + st + "</span></td>" +
+        "<td><div class='actions-cell'>" +
+        (r.status === 'pendiente' ? '<button class="btn btn-sm btn-success" onclick="updateReservation(' + r.id + ',\'confirmada\')" title="Confirmar"><i class="fa-solid fa-check"></i></button>' : '') +
+        (r.status === 'confirmada' ? '<button class="btn btn-sm btn-primary" onclick="updateReservation(' + r.id + ',\'completada\')" title="Completar"><i class="fa-solid fa-check-double"></i></button>' : '') +
+        (r.status !== 'cancelada' && r.status !== 'completada' ? '<button class="btn btn-sm btn-warning" onclick="updateReservation(' + r.id + ',\'cancelada\')" title="Cancelar"><i class="fa-solid fa-ban"></i></button>' : '') +
+        '<button class="btn btn-sm btn-danger" onclick="deleteReservation(' + r.id + ')"><i class="fa-solid fa-trash-can"></i></button>' +
+        "</div></td></tr>";
+    }).join('');
+    document.getElementById('reservationsTable').innerHTML = rows || '<tr><td colspan="7"><div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i>Sin reservas</div></td></tr>';
+    var p = document.getElementById('admin-reservations-pagination');
+    if (!p) return;
+    if (totalPages <= 1) { p.innerHTML = ''; return; }
+    var btns = [];
+    if (adminReservPage > 1) btns.push('<button data-pag="prev" style="padding:0.3rem 0.7rem;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:0.8rem;background:#e8f5e9;color:#1B5E20;">‹ Ant</button>');
+    for (var i = 1; i <= totalPages; i++) {
+        btns.push('<button data-pag="' + i + '" style="padding:0.3rem 0.7rem;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:0.8rem;' + (i === adminReservPage ? 'background:#1B5E20;color:white;' : 'background:#e8f5e9;color:#1B5E20;') + '">' + i + '</button>');
+    }
+    if (adminReservPage < totalPages) btns.push('<button data-pag="next" style="padding:0.3rem 0.7rem;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:0.8rem;background:#e8f5e9;color:#1B5E20;">Sig ›</button>');
+    p.innerHTML = btns.join('');
+}
+
+function updateReservation(id, status) {
+    const labels = { 'confirmada': 'confirmar', 'cancelada': 'cancelar', 'completada': 'completar' };
+    showConfirm('Seguro de <b>' + (labels[status] || status) + '</b> esta reserva?', function() {
+        apiPost("controllers/admin.php", "action=update_reservation_status&id=" + id + "&status=" + status).then(d => {
+            if (d.error) { showAlert(d.error); return; }
+            showAlert('Reserva ' + (labels[status] || status) + ' correctamente');
+            loadReservations();
+            loadStats();
+        });
+    });
+}
+
+function deleteReservation(id) {
+    showConfirm('Eliminar esta reserva?', function() {
+        apiPost("controllers/admin.php", "action=delete_reservation&id=" + id).then(d => {
+            if (d.error) { showAlert(d.error); return; }
+            showAlert('Reserva eliminada');
+            loadReservations();
+            loadStats();
+        });
+    });
+}
+
+function editService(id) {
+    var s = servicesData.find(function(x) { return x.id == id; });
+    if (!s) return;
+    document.getElementById('edit-service-id').value = s.id;
+    document.getElementById('edit-service-name').value = s.name || '';
+    document.getElementById('edit-service-type').value = s.type || '';
+    document.getElementById('edit-service-description').value = s.description || '';
+    document.getElementById('edit-service-price').value = parseFloat(s.price || 0);
+    document.getElementById('edit-service-capacity').value = s.capacity || 1;
+    document.getElementById('edit-service-location').value = s.location || '';
+    document.getElementById('edit-service-modal').classList.add('active');
+}
+
+function saveService() {
+    var id = document.getElementById('edit-service-id').value;
+    var name = document.getElementById('edit-service-name').value.trim();
+    var type = document.getElementById('edit-service-type').value;
+    var description = document.getElementById('edit-service-description').value.trim();
+    var price = document.getElementById('edit-service-price').value;
+    var capacity = document.getElementById('edit-service-capacity').value;
+    var location = document.getElementById('edit-service-location').value.trim();
+    if (!name) { showAlert('El nombre es obligatorio'); return; }
+    var btn = document.querySelector('#edit-service-modal .btn-success');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...';
+    apiPost("controllers/admin.php", "action=update_service&id=" + id + "&name=" + encodeURIComponent(name) + "&type=" + encodeURIComponent(type) + "&description=" + encodeURIComponent(description) + "&price=" + price + "&capacity=" + capacity + "&location=" + encodeURIComponent(location)).then(function(d) {
+        btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar';
+        if (d.error) { showAlert(d.error); return; }
+        closeModal('edit-service-modal');
+        loadServices();
+        showAlert('Servicio actualizado');
+        loadStats();
+    });
+}
+
+function renderServices() {
+    var total = servicesData.length;
+    var totalPages = Math.ceil(total / adminPageSize) || 1;
+    if (adminPage > totalPages) adminPage = totalPages;
+    var start = (adminPage - 1) * adminPageSize;
+    var page = servicesData.slice(start, start + adminPageSize);
+    var rows = page.map(function(s) {
+        return "<tr>" +
+        "<td>" + s.id + "</td>" +
+        "<td>" + esc(s.name) + "</td>" +
+        "<td>" + esc(s.type) + "</td>" +
+        "<td>" + formatPrice(s.price) + " /persona</td>" +
+        "<td>" + (s.capacity || 1) + "</td>" +
+        "<td>" + esc(s.location || '-') + "</td>" +
+        "<td>" + esc(s.provider_name || '-') + "</td>" +
+        "<td><div class='actions-cell'>" +
+        '<button class="btn btn-sm btn-primary" onclick="editService(' + s.id + ')" title="Editar"><i class="fa-solid fa-pen"></i></button> ' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteService(' + s.id + ',\'' + esc(s.name).replace(/'/g,"\\'") + '\')"><i class="fa-solid fa-trash-can"></i></button>' +
+        "</div></td></tr>";
+    }).join('');
+    document.getElementById('servicesTable').innerHTML = rows || '<tr><td colspan="8"><div class="empty-state"><i class="fa-solid fa-concierge-bell"></i>Sin servicios</div></td></tr>';
+    var p = document.getElementById('admin-services-pagination');
+    if (totalPages <= 1) { p.innerHTML = ''; return; }
+    var btns = [];
+    if (adminPage > 1) btns.push('<button data-pag="prev" style="padding:0.3rem 0.7rem;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:0.8rem;background:#e8f5e9;color:#1B5E20;">‹ Ant</button>');
+    for (var i = 1; i <= totalPages; i++) {
+        btns.push('<button data-pag="' + i + '" style="padding:0.3rem 0.7rem;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:0.8rem;' + (i === adminPage ? 'background:#1B5E20;color:white;' : 'background:#e8f5e9;color:#1B5E20;') + '">' + i + '</button>');
+    }
+    if (adminPage < totalPages) btns.push('<button data-pag="next" style="padding:0.3rem 0.7rem;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:0.8rem;background:#e8f5e9;color:#1B5E20;">Sig ›</button>');
+    p.innerHTML = btns.join('');
+}
+
+function deleteService(id, name) {
+    showConfirm('Eliminar servicio <b>' + esc(name) + '</b>?<br><small style="color:#999;">Se eliminarán también reservas y disponibilidades asociadas.</small>', function() {
+        apiPost("controllers/admin.php", "action=delete_service&id=" + id).then(d => {
+            if (d.error) { showAlert(d.error); return; }
+            showAlert('Servicio eliminado');
+            loadServices();
+            loadStats();
+        });
+    });
+}
+
+function renderStars(val, small) {
+    var s = '';
+    var size = small ? '0.85rem' : '1rem';
+    for (var i = 1; i <= 5; i++) {
+        s += i <= val ? '<span style="color:#ffc107;font-size:'+size+';">★</span>' : '<span style="color:#ccc;font-size:'+size+';">★</span>';
+    }
+    return s;
+}
+
+function renderReviews() {
+    var total = reviewsData.length;
+    var totalPages = Math.ceil(total / adminReviewsPageSize) || 1;
+    if (adminReviewsPage > totalPages) adminReviewsPage = totalPages;
+    var start = (adminReviewsPage - 1) * adminReviewsPageSize;
+    var page = reviewsData.slice(start, start + adminReviewsPageSize);
+    var rows = page.map(function(r) {
+        return "<tr>" +
+        "<td>" + r.id + "</td>" +
+        "<td>" + esc(r.service_name) + "</td>" +
+        "<td>" + esc(r.tourist_name) + "</td>" +
+        "<td>" + renderStars(parseInt(r.rating)) + " (" + r.rating + ")</td>" +
+        "<td>" + (r.comment ? esc(r.comment) : '-') + "</td>" +
+        "<td>" + r.created_at + "</td>" +
+        "<td><div class='actions-cell'>" +
+        '<button class="btn btn-sm btn-danger" onclick="deleteReview(' + r.id + ')"><i class="fa-solid fa-trash-can"></i></button>' +
+        "</div></td></tr>";
+    }).join('');
+    document.getElementById('reviewsTable').innerHTML = rows || '<tr><td colspan="7"><div class="empty-state"><i class="fa-solid fa-star"></i>Sin reseñas</div></td></tr>';
+    var p = document.getElementById('admin-reviews-pagination');
+    if (!p) return;
+    if (totalPages <= 1) { p.innerHTML = ''; return; }
+    var btns = [];
+    if (adminReviewsPage > 1) btns.push('<button data-pag="prev" style="padding:0.3rem 0.7rem;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:0.8rem;background:#e8f5e9;color:#1B5E20;">‹ Ant</button>');
+    for (var i = 1; i <= totalPages; i++) {
+        btns.push('<button data-pag="' + i + '" style="padding:0.3rem 0.7rem;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:0.8rem;' + (i === adminReviewsPage ? 'background:#1B5E20;color:white;' : 'background:#e8f5e9;color:#1B5E20;') + '">' + i + '</button>');
+    }
+    if (adminReviewsPage < totalPages) btns.push('<button data-pag="next" style="padding:0.3rem 0.7rem;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:0.8rem;background:#e8f5e9;color:#1B5E20;">Sig ›</button>');
+    p.innerHTML = btns.join('');
+}
+
+var reviewsData = [];
+
+function loadReviews() {
+    api("controllers/reviews.php?action=all").then(function(d) {
+        reviewsData = (d && Array.isArray(d.reviews)) ? d.reviews : [];
+        renderReviews();
+    });
+}
+
+function deleteReview(id) {
+    showConfirm('Eliminar esta reseña?', function() {
+        apiPost("controllers/reviews.php", "action=delete&id=" + id).then(function(d) {
+            if (d.error) { showAlert(d.error); return; }
+            showAlert('Reseña eliminada');
+            loadReviews();
+        });
+    });
+}
+
+function loadStats() {
+    api("controllers/admin.php?action=stats").then(stats => {
+        const items = [
+            { icon: "fa-users", label: "Usuarios", val: stats.users || 0 },
+            { icon: "fa-user-tie", label: "Prestadores", val: stats.prestadores || 0 },
+            { icon: "fa-user", label: "Turistas", val: stats.turistas || 0 },
+            { icon: "fa-concierge-bell", label: "Servicios", val: stats.services || 0 },
+            { icon: "fa-calendar", label: "Reservas", val: stats.reservations || 0 },
+            { icon: "fa-clock", label: "Pendientes", val: stats.pending || 0 },
+        ];
+        document.getElementById("stats").innerHTML = items.map(s =>
+            '<div class="stat"><i class="fa-solid ' + s.icon + '"></i>' +
+            '<div class="num">' + s.val + '</div><div>' + s.label + '</div></div>'
+        ).join("");
+    });
+}
+
+function loadUsers() {
+    api("controllers/admin.php?action=users").then(users => {
+        usersData = users || [];
+        renderUsers();
+    });
+}
+
+function loadReservations() {
+    api("controllers/admin.php?action=reservations").then(rows => {
+        reservationsData = rows || [];
+        renderReservations();
+    });
+}
+
+function loadServices() {
+    api("controllers/admin.php?action=services&_t=" + Date.now()).then(rows => {
+        servicesData = rows || [];
+        renderServices();
+    });
+}
+
+function loadData() {
+    loadStats();
+    loadUsers();
+    loadReservations();
+    loadServices();
+}
+
+function logout() {
+    apiPost("controllers/auth.php", "action=logout").finally(() => {
+        localStorage.removeItem("turismo_user");
+        location.href = "index.html";
+    });
+}
+
+(function() {
+    function pagListener(id, pageVar, fn) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('click', function(e) {
+            var btn = e.target.closest('[data-pag]');
+            if (!btn) return;
+            var pag = btn.getAttribute('data-pag');
+            if (pag === 'prev') { window[pageVar] = window[pageVar] - 1; if (window[pageVar] < 1) window[pageVar] = 1; }
+            else if (pag === 'next') { window[pageVar] = window[pageVar] + 1; }
+            else { var n = parseInt(pag, 10); if (!isNaN(n)) window[pageVar] = n; }
+            fn();
+        });
+    }
+    pagListener('admin-services-pagination', 'adminPage', renderServices);
+    pagListener('admin-reservations-pagination', 'adminReservPage', renderReservations);
+    pagListener('admin-reviews-pagination', 'adminReviewsPage', renderReviews);
+})();
+
+window.onload = function() {
+    fetch(API + "controllers/auth.php", { credentials: "include" })
+        .then(r => r.json())
+        .then(d => {
+            csrfToken = d.csrf_token || '';
+            if (!d.authenticated || d.user.role !== "admin") {
+                showAlert("Acceso solo para administradores.");
+                setTimeout(function() { location.href = "index.html"; }, 2000);
+                return;
+            }
+            loadData();
+        });
+};
+    </script>
+</body>
+</html>

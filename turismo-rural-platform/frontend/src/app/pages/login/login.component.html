@@ -1,0 +1,61 @@
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-container">
+    <div class="auth-hero">
+      <i class="fa-solid fa-mountain-sun"></i>
+      <h1>Turismo Rural Nariño</h1>
+      <p>Descubre la magia de nuestra tierra</p>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-toggle">
+        <button type="button" class="toggle-btn" [class.active]="tab === 'login'" (click)="setTab('login')">
+          <i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión
+        </button>
+        <button type="button" class="toggle-btn" [class.active]="tab === 'register'" (click)="setTab('register')">
+          <i class="fa-solid fa-user-plus"></i> Registrarse
+        </button>
+      </div>
+
+      @if (error()) {
+        <p style="color: #e53935; text-align: center; font-size: 0.9rem">{{ error() }}</p>
+      }
+
+      @if (tab === 'login') {
+        <form class="auth-form" (ngSubmit)="onLogin()">
+          <div class="form-field has-icon">
+            <i class="fa-solid fa-envelope field-icon"></i>
+            <input type="email" [(ngModel)]="loginEmail" name="email" placeholder="Tu correo" required />
+          </div>
+          <div class="form-field has-icon">
+            <i class="fa-solid fa-lock field-icon"></i>
+            <input type="password" [(ngModel)]="loginPassword" name="password" placeholder="Contraseña" required />
+          </div>
+          <button type="submit" class="btn-auth-primary"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+        </form>
+      } @else {
+        <form class="auth-form" (ngSubmit)="onRegister()">
+          <div class="form-field has-icon">
+            <i class="fa-solid fa-user field-icon"></i>
+            <input type="text" [(ngModel)]="regName" name="name" placeholder="Tu nombre" required />
+          </div>
+          <div class="form-field has-icon">
+            <i class="fa-solid fa-envelope field-icon"></i>
+            <input type="email" [(ngModel)]="regEmail" name="regEmail" placeholder="Tu correo" required />
+          </div>
+          <div class="form-field has-icon">
+            <i class="fa-solid fa-lock field-icon"></i>
+            <input type="password" [(ngModel)]="regPassword" name="regPassword" placeholder="Contraseña" required minlength="6" />
+          </div>
+          <div class="form-field has-icon">
+            <i class="fa-solid fa-id-card field-icon"></i>
+            <select [(ngModel)]="regRole" name="role">
+              <option value="turista">Turista</option>
+              <option value="prestador">Prestador</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-auth-primary"><i class="fa-solid fa-user-plus"></i> Crear cuenta</button>
+        </form>
+      }
+    </div>
+  </div>
+</div>
